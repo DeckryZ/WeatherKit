@@ -6,6 +6,7 @@ import { Response } from "./process/Response.mjs";
 /***************** Processing *****************/
 
 export default new Hono()
+    .get("/", c => c.text("OK"))
     .all("/:rest{.*}", async c => {
         let $request = await HonoWorkerAdapter.buildRequest(c.req);
         let $response;
