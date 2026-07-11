@@ -1,15 +1,20 @@
 /*
- * WeatherKit: force wind map card by suppressing the air-quality map trigger.
+ * WeatherKit: force wind/precip map card by removing the air-quality dataset.
  *
- * Discriminator (verified across raw Apple captures, cities Tokyo/Seoul/Lausanne
- * vs Guangzhou/Shenzhen): the client features the air-quality map ONLY when
- * Weather.airQuality.isSignificant == true. Wind/precip cities have it false
- * (omitted from the FlatBuffer vtable). Flipping the inline bool byte 01 -> 00
- * makes a "significant AQ" city read as not-significant, so the client drops the
- * AQ map card and falls back (expected: wind when no active precip).
+ * Finding (raw Apple captures): the client features the air-quality map only for
+ * locations whose Weather response CONTAINS an airQuality dataset with
+ * isSignificant=1 (Guangzhou/Shenzhen). Locations with no airQuality dataset
+ * (Hong Kong/Kowloon/Macau when air is clean, Stockholm) never show the AQ map
+ * and fall back to wind/precip. Flipping isSignificant alone did NOT drop the AQ
+ * card, so the client keys off the dataset's presence, not the bool.
+ *
+ * This zeroes the root vtable slot for airQuality (field id 0), so
+ * Weather.airQuality() returns null and the client behaves as a no-AQ city.
+ * Zeroing a 2-byte vtable voffset entry moves no data and changes no lengths:
+ * the airQuality bytes are simply orphaned. Fail-safe: pass through untouched
+ * on any anomaly.
  *
  * Response is Apple FlatBuffer (application/vnd.apple.flatbuffer;messageType=WK2.Weather).
- * This is a single inline scalar byte edit: no offsets move, length is unchanged.
  * Route: http-response GET, requires-body=1, binary-body-mode=1.
  */
 (() => {
@@ -21,27 +26,18 @@
     const i32 = o => dv.getInt32(o, true);
     const u16 = o => dv.getUint16(o, true);
 
-    // Absolute location of a table field's value, or -1 if the field is absent.
-    const fieldLoc = (tablePos, slot) => {
-        const vt = tablePos - i32(tablePos); // vtable position
-        const vtSize = u16(vt);
-        if (4 + slot * 2 >= vtSize) return -1;
-        const vo = u16(vt + 4 + slot * 2);
-        return vo === 0 ? -1 : tablePos + vo;
-    };
-
     try {
         const root = u32(0);
-        const aqOff = fieldLoc(root, 0); // Weather.airQuality (slot 0, offset field)
-        if (aqOff < 0) return $done({});
-        const aqTable = aqOff + u32(aqOff);
-        const sigLoc = fieldLoc(aqTable, 3); // AirQuality.isSignificant (slot 3, inline bool)
-        if (sigLoc < 0) return $done({}); // already false/absent -> nothing to do
-        if (body[sigLoc] === 0) return $done({});
+        const vt = root - i32(root); // root table's vtable
+        const vtSize = u16(vt);
+        if (vtSize < 6) return $done({}); // no field 0 slot
+        const slot0Entry = vt + 4; // voffset entry for field id 0 (airQuality)
+        if (u16(slot0Entry) === 0) return $done({}); // airQuality already absent
 
-        body[sigLoc] = 0; // true -> false
+        // Zero the 2-byte voffset -> Weather.airQuality() becomes null.
+        dv.setUint16(slot0Entry, 0, true);
 
-        // GET has max-age caching; force a re-fetch so the edit is not shadowed by cache.
+        // GET has max-age caching; force a re-fetch so the edit is not shadowed.
         const headers = $response.headers || {};
         for (const k of Object.keys(headers)) {
             if (k.toLowerCase() === "cache-control") delete headers[k];
@@ -50,6 +46,6 @@
 
         return $done({ body, headers });
     } catch (e) {
-        return $done({}); // fail safe: never corrupt the page
+        return $done({}); // never corrupt the page
     }
 })();

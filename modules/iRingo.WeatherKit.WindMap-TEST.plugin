@@ -1,6 +1,6 @@
 #!name = 🌬 WeatherKit 强制风图 (TEST)
-#!desc = 实验：把 airQuality.isSignificant 置 false，测试空气质量卡片是否回落成风图 | 更新: 2026-07-11 16:34
-#!date = 2026-07-11 16:34
+#!desc = 实验：删除整个 airQuality 数据集，测试空气质量卡片是否回落成风图/降水 | 更新: 2026-07-11 16:58
+#!date = 2026-07-11 16:58
 #!system = iOS,iPadOS,macOS,watchOS
 #!system_version = 18
 
