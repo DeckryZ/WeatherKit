@@ -347,6 +347,8 @@ async function InjectAirQuality(airQuality, Settings, Caches, enviroments) {
     airQuality = {
         ...airQuality,
         ...(injectedIndex?.metadata && !injectedIndex.metadata.temporarilyUnavailable ? injectedIndex : {}),
+        // Prevent Weather.app from prioritizing the air-quality map card.
+        isSignificant: false,
         metadata: {
             ...(airQuality?.metadata ? airQuality.metadata : injectedPollutants?.metadata),
             providerName: providers.join("\n"),
