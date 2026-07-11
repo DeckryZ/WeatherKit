@@ -1,0 +1,22 @@
+#!name = 🌬 WeatherKit 强制风图 (TEST)
+#!desc = 实验：把 airQuality.isSignificant 置 false，测试空气质量卡片是否回落成风图 | 更新: 2026-07-11 16:34
+#!date = 2026-07-11 16:34
+#!system = iOS,iPadOS,macOS,watchOS
+#!system_version = 18
+
+# 隔离测试：不走 nanocat 重写，直接对 Apple 原始 WeatherKit 响应做单字节翻转。
+# 假设：Weather.airQuality.isSignificant == true 是"显示空气质量地图卡"的触发条件。
+# 置 false 后预期：空气质量城市回落到风图（无活跃降水时）。
+# weather-map2.apple.com 留在 MITM 里，用来观察改后实际请求哪个 mapOverlay。
+
+[Rule]
+DOMAIN,weather-analytics-events.apple.com,REJECT-DROP
+DOMAIN-SUFFIX,tthr.apple.com,REJECT-DROP
+DOMAIN,tether.edge.apple,REJECT-DROP
+AND,((OR,((IP-ASN,714,no-resolve),(IP-ASN,6185,no-resolve))),(PROTOCOL,QUIC)),REJECT-DROP
+
+[Script]
+http-response ^https?:\/\/weatherkit\.apple\.com\/api\/v2\/weather\/ requires-body=1, binary-body-mode=1, script-path=https://raw.githubusercontent.com/DeckryZ/WeatherKit/main/scripts/force-wind-map.js, tag=🌬 强制风图
+
+[MITM]
+hostname = weatherkit.apple.com, weather-map2.apple.com
