@@ -117,7 +117,9 @@ export async function Response($request, $response) {
                                                 if (Settings?.LogLevel === "DEBUG" || Settings?.LogLevel === "ALL") {
                                                     matchEnum.airQuality();
                                                 }
-                                                body.airQuality = await InjectAirQuality(body.airQuality, Settings, Caches, enviroments);
+                                                // Experiment: remove the optional AQ dataset so Weather.app
+                                                // cannot select its air-quality map card.
+                                                delete body.airQuality;
                                                 break;
                                             }
                                             case "currentWeather": {
@@ -417,8 +419,6 @@ async function InjectAirQuality(airQuality, Settings, Caches, enviroments) {
     airQuality = {
         ...airQuality,
         ...(injectedIndex?.metadata && !injectedIndex.metadata.temporarilyUnavailable ? injectedIndex : {}),
-        // Prevent Weather.app from prioritizing the air-quality map card.
-        isSignificant: false,
         metadata: {
             ...(airQuality?.metadata ? airQuality.metadata : injectedPollutants?.metadata),
             providerName: providers.join("\n"),
