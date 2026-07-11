@@ -6,7 +6,15 @@
         if (key.toLowerCase() !== "geocountrycode") headers[key] = source[key];
     });
 
-    // Test whether Weather.app's map-card selection follows this region hint.
+    // Test whether Weather.app's map-card selection follows Japan region hints.
     headers.geocountrycode = "JP";
-    $done({ headers });
+
+    const result = { headers };
+    const url = $request.url || "";
+
+    if (/\/api\/v2\/weather\//.test(url) && /([?&])country=/.test(url)) {
+        result.url = url.replace(/([?&])country=[^&]*/, "$1country=JP");
+    }
+
+    $done(result);
 })();

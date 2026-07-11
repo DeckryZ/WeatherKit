@@ -1,12 +1,12 @@
 #!name =  iRingo: 🌤 WeatherKit (Rewrite)
-#!desc = iOS 18 & macOS 15 & watchOS 11\n1.解锁全部天气功能\n2.替换空气质量数据\n3.添加下一小时降水数据\n4.添加天气数据\n5.地区请求头设为JP（实验）
+#!desc = iOS 18 & macOS 15 & watchOS 11\n1.解锁全部天气功能\n2.替换空气质量数据\n3.添加下一小时降水数据\n4.添加天气数据\n5.地区请求头与country参数设为JP（实验）
 #!openUrl = http://boxjs.com/#/app/iRingo.WeatherKit
 #!author = VirgilClyne[https://github.com/VirgilClyne],WordlessEcho[https://github.com/WordlessEcho],001[https://github.com/001ProMax]
 #!homepage = https://NSRingo.github.io/guide/Weather/weather-kit
 #!icon = https://developer.apple.com/assets/elements/icons/weatherkit/weatherkit-128x128.png
 #!tag =  iRingo
 #!system = iOS,iPadOS,macOS,watchOS
-#!date = 2026-07-11 15:42
+#!date = 2026-07-11 15:53
 #!system_version = 18
 
 [Rule]
@@ -22,7 +22,7 @@ AND,((OR,((IP-ASN,714,no-resolve),(IP-ASN,6185,no-resolve))),(PROTOCOL,QUIC)),RE
 ^https?:\/\/weatherkit\.apple\.com\/api\/v2\/weather\/ https://weatherkit.nanocat.cloud/api/v2/weather/ header
 
 [Script]
-http-request ^https?:\/\/(?:(?:weatherkit\.apple\.com|weatherkit\.nanocat\.cloud)\/api\/v2\/weather\/|weather-map2\.apple\.com\/v1\/mapOverlay\/) script-path=https://raw.githubusercontent.com/DeckryZ/WeatherKit/main/scripts/force-geocountrycode-jp.js, tag=🌏 地区请求头设为JP
+http-request ^https?:\/\/(?:(?:weatherkit\.apple\.com|weatherkit\.nanocat\.cloud)\/api\/v2\/weather\/|weather-map2\.apple\.com\/v1\/mapOverlay\/) script-path=https://raw.githubusercontent.com/DeckryZ/WeatherKit/main/scripts/force-geocountrycode-jp.js, tag=🌏 地区设为JP
 
 [MITM]
 hostname = weatherkit.apple.com, weatherkit.nanocat.cloud, weather-map2.apple.com
