@@ -96,9 +96,7 @@ export async function Response($request, $response) {
                                     parameters.dataSets.map(async dataSet => {
                                         switch (dataSet) {
                                             case "airQuality": {
-                                                // Experiment: remove the optional AQ dataset so Weather.app
-                                                // cannot select its air-quality map card.
-                                                delete body.airQuality;
+                                                body.airQuality = await InjectAirQuality(body.airQuality, Settings, Caches, enviroments);
                                                 break;
                                             }
                                             case "currentWeather": {

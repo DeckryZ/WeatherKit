@@ -117,9 +117,7 @@ export async function Response($request, $response) {
                                                 if (Settings?.LogLevel === "DEBUG" || Settings?.LogLevel === "ALL") {
                                                     matchEnum.airQuality();
                                                 }
-                                                // Experiment: remove the optional AQ dataset so Weather.app
-                                                // cannot select its air-quality map card.
-                                                delete body.airQuality;
+                                                body.airQuality = await InjectAirQuality(body.airQuality, Settings, Caches, enviroments);
                                                 break;
                                             }
                                             case "currentWeather": {
