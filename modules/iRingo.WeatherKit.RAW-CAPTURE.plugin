@@ -1,0 +1,19 @@
+#!name = 🔬 WeatherKit RAW CAPTURE (diagnostic)
+#!desc = 诊断专用：不重写、不改请求，只 MITM 抓 Apple 原始 WeatherKit 响应 + mapOverlay 请求 | 更新: 2026-07-11 16:22
+#!date = 2026-07-11 16:22
+#!system = iOS,iPadOS,macOS,watchOS
+#!system_version = 18
+
+# 目的：拿到 Apple 未经 nanocat 重编码的原始 WK2.Weather FlatBuffer，
+# 并观察每个城市实际请求哪个 mapOverlay（airQuality / precipitation / 无=风图）。
+# 关键：这里【没有】任何 URL Rewrite、【没有】任何 Script。响应保持 Apple 原样。
+
+[Rule]
+DOMAIN,weather-analytics-events.apple.com,REJECT-DROP
+DOMAIN-SUFFIX,tthr.apple.com,REJECT-DROP
+DOMAIN,tether.edge.apple,REJECT-DROP
+# 关键：拒绝 Apple ASN 的 QUIC，强制 weatherkit.apple.com 回落 TCP/HTTP2，MITM 才能解密+抓包
+AND,((OR,((IP-ASN,714,no-resolve),(IP-ASN,6185,no-resolve))),(PROTOCOL,QUIC)),REJECT-DROP
+
+[MITM]
+hostname = weatherkit.apple.com, weather-map2.apple.com
